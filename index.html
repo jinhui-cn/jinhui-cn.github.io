@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>常用页面导航</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --panel: #ffffff;
+    --text: #1f2329;
+    --text-2: #646a73;
+    --border: #e5e6eb;
+    --primary: #3370ff;
+    --primary-hover: #245bdb;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+    --radius: 12px;
+  }
+  [data-theme="dark"] {
+    --bg: #16181d;
+    --panel: #1f2329;
+    --text: #e8eaed;
+    --text-2: #9aa0a6;
+    --border: #2c3138;
+    --primary: #4b8bff;
+    --primary-hover: #6ba0ff;
+    --shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.25);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background .2s, color .2s;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 60px; }
+
+  /* Header */
+  header {
+    display: flex; align-items: center; gap: 16px;
+    flex-wrap: wrap; margin-bottom: 22px;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; }
+  .logo .dot { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--primary), #7aa0ff); display: grid; place-items: center; color: #fff; font-size: 16px; }
+  .search {
+    flex: 1; min-width: 200px; max-width: 420px;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 9px 14px;
+  }
+  .search input { border: none; outline: none; background: transparent; color: var(--text); font-size: 14px; flex: 1; }
+  .search-btn {
+    border: none; cursor: pointer; background: var(--primary); color: #fff;
+    border-radius: 7px; padding: 6px 14px; font-size: 13px; font-weight: 600;
+    white-space: nowrap; transition: background .15s;
+  }
+  .search-btn:hover { background: var(--primary-hover); }
+  .search-btn:active { transform: scale(.96); }
+  .search svg { flex-shrink: 0; opacity: .5; }
+  .spacer { flex: 1; }
+  .btn {
+    border: none; cursor: pointer; border-radius: 10px;
+    padding: 10px 16px; font-size: 14px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background .15s, transform .05s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-ghost { background: var(--panel); color: var(--text-2); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); }
+
+  /* Category tabs */
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .tab {
+    padding: 7px 16px; border-radius: 999px; cursor: pointer; font-size: 13px;
+    background: var(--panel); border: 1px solid var(--border); color: var(--text-2);
+    transition: all .15s; user-select: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  /* Grid */
+  .grid {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px; cursor: pointer; position: relative;
+    box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s, border-color .12s;
+    display: flex; flex-direction: column; gap: 12px; min-height: 120px;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.1); border-color: var(--primary); }
+  .card.dragging { opacity: .4; }
+  .card .icon {
+    width: 46px; height: 46px; border-radius: 11px; display: grid; place-items: center;
+    font-size: 20px; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0;
+    background-size: cover; background-position: center;
+  }
+  .card .icon img { width: 100%; height: 100%; object-fit: cover; }
+  .card .info { flex: 1; min-width: 0; }
+  .card .title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card .url { font-size: 12px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
+  .card .cat-tag {
+    align-self: flex-start; font-size: 11px; padding: 2px 9px; border-radius: 999px;
+    background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary);
+  }
+  .card .actions {
+    position: absolute; top: 10px; right: 10px; display: flex; gap: 4px;
+    opacity: 0; transition: opacity .15s;
+  }
+  .card:hover .actions { opacity: 1; }
+  .icon-btn {
+    width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border);
+    background: var(--panel); cursor: pointer; display: grid; place-items: center; color: var(--text-2);
+  }
+  .icon-btn:hover { color: var(--text); background: var(--bg); }
+  .drag-handle { cursor: grab; }
+
+  .empty {
+    grid-column: 1 / -1; text-align: center; padding: 70px 20px; color: var(--text-2);
+  }
+  .empty svg { opacity: .35; margin-bottom: 14px; }
+  .empty p { font-size: 15px; }
+
+  /* Modal */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    display: none; align-items: center; justify-content: center; z-index: 50; padding: 20px;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: var(--panel); border-radius: 16px; padding: 26px; width: 100%; max-width: 440px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  }
+  .modal h3 { font-size: 18px; margin-bottom: 18px; }
+  .field { margin-bottom: 15px; }
+  .field label { display: block; font-size: 13px; color: var(--text-2); margin-bottom: 6px; }
+  .field input, .field select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 9px;
+    background: var(--bg); color: var(--text); font-size: 14px; outline: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--primary); }
+  .field .hint { font-size: 11px; color: var(--text-2); margin-top: 4px; }
+  .colors { display: flex; gap: 8px; flex-wrap: wrap; }
+  .color-dot { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+  .color-dot.sel { border-color: var(--text); transform: scale(1.1); }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+
+  @media (max-width: 600px) {
+    .wrap { padding: 18px 14px 40px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    /* 头部在手机上改为纵向堆叠，避免搜索框与按钮挤在一起“穿模” */
+    header { gap: 12px; }
+    .logo { flex: 1 1 100%; font-size: 19px; }
+    .search { flex: 1 1 100%; max-width: none; min-width: 0; order: 2; }
+    .search input { min-width: 0; }
+    .spacer { display: none; }
+    #themeBtn { order: 3; }
+    #addBtn { order: 4; flex: 1; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><span class="dot">★</span> 常用页面导航</div>
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="searchInput" type="text" placeholder="搜网页或筛选本页（回车搜全网）">
+      <button class="search-btn" id="searchBtn" type="button">搜索</button>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn-ghost" id="themeBtn" title="切换主题">🌓</button>
+    <button class="btn btn-primary" id="addBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      添加页面
+    </button>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="modalTitle">添加页面</h3>
+    <div class="field">
+      <label>页面名称</label>
+      <input id="fTitle" type="text" placeholder="例如：邮箱、Jira、GitLab">
+    </div>
+    <div class="field">
+      <label>网址 URL</label>
+      <input id="fUrl" type="text" placeholder="https://example.com">
+      <div class="hint">可省略 http(s)://，自动补全</div>
+    </div>
+    <div class="field">
+      <label>分类</label>
+      <input id="fCat" type="text" placeholder="例如：工作、工具、娱乐（可留空）" list="catList">
+      <datalist id="catList"></datalist>
+    </div>
+    <div class="field">
+      <label>卡片颜色</label>
+      <div class="colors" id="colors"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelBtn">取消</button>
+      <button class="btn btn-primary" id="saveBtn">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PALETTE = ["#3370ff","#f5654a","#34c759","#ff9f0a","#af52de","#00b8d9","#ff2d92","#8e8e93"];
+const STORE_KEY = "dashboard_pages_v1";
+const THEME_KEY = "dashboard_theme";
+// 搜索引擎：百度，可改为谷歌 https://www.google.com/search?q= 或必应 https://www.bing.com/search?q=
+const SEARCH_ENGINE = "https://www.baidu.com/s?wd=";
+
+let pages = load();
+let activeCat = "全部";
+let editingId = null;
+let pickedColor = PALETTE[0];
+
+/* ---------- Storage ---------- */
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+  catch { return []; }
+}
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(pages)); }
+
+/* ---------- Helpers ---------- */
+function normUrl(u) {
+  u = (u || "").trim();
+  if (!u) return "";
+  if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+  return u;
+}
+function hostOf(u) {
+  try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; }
+}
+function favicon(u) {
+  const h = hostOf(u);
+  return h ? `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(h)}` : "";
+}
+function escapeHtml(s) {
+  return (s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+/* 在新标签页打开网页搜索结果 */
+function webSearch(q) {
+  q = (q || "").trim();
+  if (!q) { document.getElementById("searchInput").focus(); return; }
+  window.open(SEARCH_ENGINE + encodeURIComponent(q), "_blank", "noopener");
+}
+
+/* ---------- Render ---------- */
+function categories() {
+  const set = new Set();
+  pages.forEach(p => set.add(p.category || "未分类"));
+  return ["全部", ...set];
+}
+function renderTabs() {
+  const tabs = categories();
+  const box = document.getElementById("tabs");
+  box.innerHTML = tabs.map(c =>
+    `<div class="tab ${c===activeCat?'active':''}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</div>`
+  ).join("");
+  box.querySelectorAll(".tab").forEach(t =>
+    t.onclick = () => { activeCat = t.dataset.cat; renderTabs(); renderGrid(); });
+
+  document.getElementById("catList").innerHTML =
+    tabs.filter(c => c !== "全部").map(c => `<option value="${escapeHtml(c)}">`).join("");
+}
+function renderGrid() {
+  const q = document.getElementById("searchInput").value.trim().toLowerCase();
+  const grid = document.getElementById("grid");
+  let list = pages.filter(p => activeCat === "全部" || (p.category || "未分类") === activeCat);
+  if (q) list = list.filter(p =>
+    (p.title || "").toLowerCase().includes(q) || (p.url || "").toLowerCase().includes(q));
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <p>${pages.length ? "没有匹配的页面" : "还没有页面，点击右上角“添加页面”开始吧"}</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(p => {
+    const icon = p.color || PALETTE[0];
+    const fi = favicon(p.url);
+    return `<div class="card" data-id="${p.id}" draggable="true">
+      <div class="actions">
+        <button class="icon-btn drag-handle" title="拖动排序" draggable="true">⠿</button>
+        <button class="icon-btn" title="编辑" data-act="edit">✎</button>
+        <button class="icon-btn" title="删除" data-act="del">🗑</button>
+      </div>
+      <div class="icon" style="background:${icon}">
+        ${fi ? `<img src="${fi}" onerror="this.parentNode.textContent='${escapeHtml((p.title||'?').charAt(0).toUpperCase())}'">` : escapeHtml((p.title||'?').charAt(0).toUpperCase())}
+      </div>
+      <div class="info">
+        <div class="title">${escapeHtml(p.title || hostOf(p.url))}</div>
+        <div class="url">${escapeHtml(hostOf(p.url) || p.url || "")}</div>
+      </div>
+      ${(p.category) ? `<div class="cat-tag">${escapeHtml(p.category)}</div>` : ``}
+    </div>`;
+  }).join("");
+
+  grid.querySelectorAll(".card").forEach(card => {
+    const id = card.dataset.id;
+    card.onclick = (e) => {
+      if (e.target.closest("[data-act]")) return;
+      const p = pages.find(x => x.id === id);
+      if (p && p.url) window.open(p.url, "_blank", "noopener");
+    };
+    card.querySelector('[data-act="edit"]').onclick = (e) => { e.stopPropagation(); openModal(id); };
+    card.querySelector('[data-act="del"]').onclick = (e) => {
+      e.stopPropagation();
+      if (confirm("确定删除该页面？")) {
+        pages = pages.filter(x => x.id !== id);
+        save(); renderTabs(); renderGrid();
+      }
+    };
+    enableDrag(card);
+  });
+}
+
+/* ---------- Drag & drop reorder ---------- */
+let dragId = null;
+function enableDrag(card) {
+  card.addEventListener("dragstart", () => { dragId = card.dataset.id; card.classList.add("dragging"); });
+  card.addEventListener("dragend", () => { card.classList.remove("dragging"); dragId = null; });
+  card.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    if (!dragId || dragId === card.dataset.id) return;
+    const from = pages.findIndex(x => x.id === dragId);
+    const to = pages.findIndex(x => x.id === card.dataset.id);
+    if (from < 0 || to < 0) return;
+    const [m] = pages.splice(from, 1);
+    pages.splice(to, 0, m);
+    save(); renderGrid();
+  });
+}
+
+/* ---------- Modal ---------- */
+function renderColors() {
+  document.getElementById("colors").innerHTML = PALETTE.map(c =>
+    `<div class="color-dot ${c===pickedColor?'sel':''}" style="background:${c}" data-c="${c}"></div>`
+  ).join("");
+  document.getElementById("colors").querySelectorAll(".color-dot").forEach(d =>
+    d.onclick = () => { pickedColor = d.dataset.c; renderColors(); });
+}
+function openModal(id) {
+  editingId = id || null;
+  document.getElementById("modalTitle").textContent = id ? "编辑页面" : "添加页面";
+  const p = id ? pages.find(x => x.id === id) : null;
+  document.getElementById("fTitle").value = p ? p.title : "";
+  document.getElementById("fUrl").value = p ? p.url : "";
+  document.getElementById("fCat").value = p ? (p.category || "") : "";
+  pickedColor = p ? (p.color || PALETTE[0]) : PALETTE[0];
+  renderColors();
+  document.getElementById("overlay").classList.add("show");
+  document.getElementById("fTitle").focus();
+}
+function closeModal() { document.getElementById("overlay").classList.remove("show"); }
+function saveModal() {
+  const title = document.getElementById("fTitle").value.trim();
+  const url = normUrl(document.getElementById("fUrl").value);
+  const category = document.getElementById("fCat").value.trim();
+  if (!url) { alert("请填写网址"); return; }
+  if (editingId) {
+    const p = pages.find(x => x.id === editingId);
+    Object.assign(p, { title: title || hostOf(url), url, category, color: pickedColor });
+  } else {
+    pages.push({ id: uid(), title: title || hostOf(url), url, category, color: pickedColor });
+  }
+  save(); closeModal(); renderTabs(); renderGrid();
+}
+
+/* ---------- Events ---------- */
+document.getElementById("addBtn").onclick = () => openModal();
+document.getElementById("cancelBtn").onclick = closeModal;
+document.getElementById("saveBtn").onclick = saveModal;
+document.getElementById("overlay").onclick = (e) => { if (e.target.id === "overlay") closeModal(); };
+document.getElementById("searchInput").oninput = renderGrid;
+document.getElementById("searchBtn").onclick = () => webSearch(document.getElementById("searchInput").value);
+document.getElementById("searchInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); webSearch(document.getElementById("searchInput").value); }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeModal();
+  if (e.key === "Enter" && document.getElementById("overlay").classList.contains("show")) saveModal();
+});
+document.getElementById("themeBtn").onclick = () => {
+  const t = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", t);
+  localStorage.setItem(THEME_KEY, t);
+};
+
+/* ---------- Init ---------- */
+if (localStorage.getItem(THEME_KEY) === "dark") document.documentElement.setAttribute("data-theme", "dark");
+// 首次使用的示例数据
+if (!localStorage.getItem(STORE_KEY)) {
+  pages = [
+    { id: uid(), title: "WorkBuddy", url: "https://www.workbuddy.cn", category: "工具", color: "#3370ff" },
+    { id: uid(), title: "GitHub", url: "https://github.com", category: "工作", color: "#8e8e93" },
+  ];
+  save();
+}
+renderTabs();
+renderGrid();
+</script>
+</body>
+</html>
